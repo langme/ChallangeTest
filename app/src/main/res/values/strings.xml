@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">ChallengeTest</string>
+    <string name="firstName">First Name</string>
+    <string name="lastName">Last Name</string>
+    <string name="email">Email</string>
+    <string name="register">Register</string>
 </resources>
