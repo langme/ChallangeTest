@@ -30,5 +30,5 @@ class RegisterUser{
         this.emailUser = emailUser
     }
 
-    val isInValid get() = firstName.isNullOrEmpty() && lastName.isNullOrEmpty() && emailUser.isNullOrEmpty()
+    val isNotValid get() = firstName.isNullOrEmpty() && lastName.isNullOrEmpty() && emailUser.isNullOrEmpty()
 }

@@ -33,6 +33,7 @@ import com.example.challengetest.viewmodels.UserRegisterViewModel
 import com.example.challengetest.viewmodels.UserRegisterViewModelFactory
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.challengetest.component.InputFieldComponent
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.coroutines.coroutineContext
 
 enum class TypeField {
@@ -43,31 +44,18 @@ enum class TypeField {
 fun RegisterScreen(
     modifier: Modifier = Modifier
 ) {
-    val  context = LocalContext.current
+    val context = LocalContext.current
     var userRegisterViewModel: UserRegisterViewModel = viewModel(
         factory = UserRegisterViewModelFactory(
-            context.applicationContext as Application
+            context.applicationContext as Application,
+            context
         )
     )
 
-    var firstName by remember { mutableStateOf(context.resources.getString(R.string.firstName)) }
-    var lastName by remember { mutableStateOf(context.resources.getString(R.string.lastName))}
-    var email by remember { mutableStateOf(context.resources.getString(R.string.email))}
-
-
-    fun onFirstNameTextChange(_firstName : String){
-        firstName  = _firstName
-    }
-    fun onLastNameTextChange(_lastName : String){
-        lastName = _lastName
-    }
-    fun onEmailNameTextChange(_emailName : String){
-        email = _emailName
-    }
-
     Surface(
         modifier.fillMaxSize(),
-        color = MaterialTheme.colors.background) {
+        color = MaterialTheme.colors.background
+    ) {
         Column() {
             Spacer(modifier = Modifier.height(60.dp))
             Row(
@@ -75,8 +63,8 @@ fun RegisterScreen(
             ) {
                 // first name extField
                 myTextField(
-                    firstName, TypeField.FIRST,
-                ) { onFirstNameTextChange(it)}
+                    userRegisterViewModel.firstName.collectAsState().value, TypeField.FIRST,
+                ) { userRegisterViewModel.firstName.value = it }
             }
             Spacer(modifier = Modifier.height(20.dp))
             Row(
@@ -84,37 +72,40 @@ fun RegisterScreen(
             ) {
                 // last name extField
                 myTextField(
-                    lastName, TypeField.LAST,
-                ) { onLastNameTextChange(it) }
+                    userRegisterViewModel.lastName.collectAsState().value, TypeField.LAST,
+                ) { userRegisterViewModel.lastName.value = it }
             }
+
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 // email name extField
                 myTextField(
-                    email, TypeField.EMAIL,
-                ) { onEmailNameTextChange(it) }
+                    userRegisterViewModel.email.collectAsState().value, TypeField.EMAIL,
+                ) { userRegisterViewModel.email.value = it }
             }
+
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 Button(
                     onClick = {
-                        val user = RegisterUser(firstName,lastName,email)
-                        if (user.isInValid)  userRegisterViewModel.addUser(user) else Toast.makeText(context, "Invalidate registration!", Toast.LENGTH_SHORT).show()
-                        },
+                        userRegisterViewModel.addUser()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(80.dp, 20.dp)
-                ){
+                ) {
                     Text(text = stringResource(id = R.string.register))
                 }
             }
         }
     }
+
 }
+
 
 @Preview
 @Composable
