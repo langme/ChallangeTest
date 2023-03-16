@@ -2,68 +2,100 @@ package com.example.challengetest.viewmodels
 
 import android.app.Application
 import android.content.Context
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.lifecycle.*
 import com.example.challengetest.R
 import com.example.challengetest.data.AppDatabase
+import com.example.challengetest.domain.UIEvent
+import com.example.challengetest.domain.UIState
+import com.example.challengetest.domain.ValidationEvent
+import com.example.challengetest.domain.Validator
 import kotlinx.coroutines.launch
 import com.example.challengetest.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import com.example.challengetest.data.RegisterUser as RegisterUser
 
 
 class UserRegisterViewModel (
-    application: Application,
-    context : Context
+    application: Application
 ) : ViewModel(){
+
     private val userRegisterDao = AppDatabase.getInstance(application).userDao()
     private val userItemRepository = UserRepository(userRegisterDao)
 
-    var firstName = MutableStateFlow(context.resources.getString(R.string.firstName))
-    var lastName = MutableStateFlow(context.resources.getString(R.string.lastName))
-    var email = MutableStateFlow(context.resources.getString(R.string.email))
-    var user = RegisterUser(firstName.value, lastName.value, email.value)
-    private val _toastMessage = MutableSharedFlow<String>()
-    val toastMessage = _toastMessage.asSharedFlow()
+    private var _uiState = mutableStateOf(UIState())
+    val uiState: State<UIState> = _uiState
+    val validationEvent = MutableSharedFlow<ValidationEvent>()
 
     init {
-
     }
 
-    fun addUser() {
-        viewModelScope.launch(Dispatchers.IO) {
-            user.firstName = firstName.value
-            user.lastName = lastName.value
-            user.emailUser = email.value
+    fun onEvent(event: UIEvent) {
+        when(event) {
+            is UIEvent.FirstNameChanged -> {
+                _uiState.value = _uiState.value.copy(
+                    firstName = event.firstName
+                )
+            }
+            is UIEvent.LastNameChanged -> {
+                _uiState.value = _uiState.value.copy(
+                    lastName = event.lastName
+                )
+            }
+            is UIEvent.EmailChanged -> {
+                _uiState.value = _uiState.value.copy(
+                    email = event.email
+                )
+            }
 
-            if (!user.isNotValid)
-                userItemRepository.addUserRepo(user)
-            //else
-                //state.error
+            is UIEvent.Submit -> {
+                validateInputs()
+            }
         }
     }
 
-    fun sendMessage(message: String) {
+    private fun validateInputs() {
+        val firstNameResult = Validator.validateFirstName(_uiState.value.firstName)
+        val lastNameResult = Validator.validateLastName(_uiState.value.lastName)
+        val emailResult = Validator.validateEmail(_uiState.value.email)
+
+        _uiState.value = _uiState.value.copy(
+            hasFirstNameError = !firstNameResult.status,
+            hasLastNameError = !lastNameResult.status,
+            hasEmailError = !emailResult.status,
+        )
+
+        val hasError = listOf(
+            firstNameResult,
+            lastNameResult,
+            emailResult
+        ).any { !it.status }
         viewModelScope.launch {
-            _toastMessage.emit(message)
+            if (!hasError) {
+                validationEvent.emit(ValidationEvent.Success)
+            } else {
+                validationEvent.emit(ValidationEvent.Error)
+            }
         }
     }
+
+    fun addUser(user : RegisterUser) {
+        viewModelScope.launch(Dispatchers.IO) {
+                userItemRepository.addUserRepo(user)
+        }
+    }
+
 }
 
 class UserRegisterViewModelFactory(
-    private val application: Application,
-    private val context: Context
+    private val application: Application
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
         if (modelClass.isAssignableFrom(UserRegisterViewModel::class.java)) {
-            return UserRegisterViewModel(application, context) as T
+            return UserRegisterViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

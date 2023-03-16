@@ -2,78 +2,82 @@ package com.example.challengetest.ui
 
 import android.app.Application
 import android.widget.Toast
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.ZeroCornerSize
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.challengetest.ui.theme.ChallengeTestTheme
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.example.challengetest.R
-import com.example.challengetest.data.RegisterUser
 import com.example.challengetest.viewmodels.UserRegisterViewModel
 import com.example.challengetest.viewmodels.UserRegisterViewModelFactory
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.challengetest.component.InputFieldComponent
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlin.coroutines.coroutineContext
-
-enum class TypeField {
-    FIRST, LAST , EMAIL
-}
+import com.example.challengetest.data.RegisterUser
+import com.example.challengetest.domain.UIEvent
+import com.example.challengetest.domain.ValidationEvent
 
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var userRegisterViewModel: UserRegisterViewModel = viewModel(
+    val userRegisterViewModel: UserRegisterViewModel = viewModel(
         factory = UserRegisterViewModelFactory(
-            context.applicationContext as Application,
-            context
+            context.applicationContext as Application
         )
     )
+    val state = userRegisterViewModel.uiState.value
+
+    LaunchedEffect(key1 = context) {
+        userRegisterViewModel.validationEvent.collect { event ->
+            when(event) {
+                is ValidationEvent.Success -> {
+                    userRegisterViewModel.addUser(
+                        RegisterUser(
+                            userRegisterViewModel.uiState.value.firstName,
+                            userRegisterViewModel.uiState.value.lastName,
+                            userRegisterViewModel.uiState.value.email,
+                        ))
+                    Toast
+                        .makeText(context,"All inputs are valid", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+                is ValidationEvent.Error -> {
+                    Toast
+                        .makeText(context, "All inputs are not valid", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+        }
+    }
 
     Surface(
         modifier.fillMaxSize(),
         color = MaterialTheme.colors.background
     ) {
-        Column() {
+        Column {
             Spacer(modifier = Modifier.height(60.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 // first name extField
-                myTextField(
-                    userRegisterViewModel.firstName.collectAsState().value, TypeField.FIRST,
-                ) { userRegisterViewModel.firstName.value = it }
+                InputFieldComponent(
+                    UIEvent.TypeField.FIRST, state.hasFirstNameError
+                ) { userRegisterViewModel.onEvent(UIEvent.FirstNameChanged(it))}
             }
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 // last name extField
-                myTextField(
-                    userRegisterViewModel.lastName.collectAsState().value, TypeField.LAST,
-                ) { userRegisterViewModel.lastName.value = it }
+                InputFieldComponent(
+                    UIEvent.TypeField.LAST, state.hasLastNameError
+                ) { userRegisterViewModel.onEvent(UIEvent.LastNameChanged(it))}
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -81,9 +85,9 @@ fun RegisterScreen(
                 horizontalArrangement = Arrangement.Center,
             ) {
                 // email name extField
-                myTextField(
-                    userRegisterViewModel.email.collectAsState().value, TypeField.EMAIL,
-                ) { userRegisterViewModel.email.value = it }
+                InputFieldComponent(
+                    UIEvent.TypeField.EMAIL, state.hasEmailError
+                ) { userRegisterViewModel.onEvent(UIEvent.EmailChanged(it))}
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -92,7 +96,7 @@ fun RegisterScreen(
             ) {
                 Button(
                     onClick = {
-                        userRegisterViewModel.addUser()
+                        userRegisterViewModel.onEvent(UIEvent.Submit)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -110,51 +114,7 @@ fun RegisterScreen(
 @Preview
 @Composable
 private fun RegisterScreenPreview() {
-    ChallengeTestTheme{
+    ChallengeTestTheme {
         //RegisterScreen()
-    }
-}
-
-@Composable
-private fun myTextField(
-    name: String,
-    typeField : TypeField,
-    onValChange: ((String) -> Unit)?
-    )
-{
-
-    val focusManager = LocalFocusManager.current
-    if (onValChange != null) {
-        InputFieldComponent(
-            text = name,
-            onChange = onValChange,
-            label = "",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(80.dp, 20.dp)
-                .border(
-                    2.dp,
-                    color = MaterialTheme.colors.primaryVariant,
-                    shape = RoundedCornerShape(2.dp)
-                )
-            ,
-            leadingIcon = {
-                when (typeField) {
-                    TypeField.EMAIL -> Icon(Icons.Default.Email, "email Icon")
-                    else -> Icon(Icons.Default.Person, "people Icon")
-                }
-            },
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color(0xFFFFFF),
-                cursorColor = MaterialTheme.colors.primaryVariant,
-            ),
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
-            singleLine = true,
-            shape = MaterialTheme.shapes.small.copy(
-                bottomEnd = ZeroCornerSize,
-                bottomStart = ZeroCornerSize
-            ),
-
-        )
     }
 }
