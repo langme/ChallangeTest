@@ -1,6 +1,7 @@
 package com.example.challengetest.ui
 
 import android.app.Application
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.example.challengetest.R
 import com.example.challengetest.viewmodels.UserRegisterViewModel
 import com.example.challengetest.viewmodels.UserRegisterViewModelFactory
@@ -25,10 +29,11 @@ import com.example.challengetest.data.RegisterUser
 import com.example.challengetest.domain.UIEvent
 import com.example.challengetest.domain.ValidationEvent
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RegisterScreen(
-    modifier: Modifier = Modifier
 ) {
+    val modifier: Modifier = Modifier
     val context = LocalContext.current
     val userRegisterViewModel: UserRegisterViewModel = viewModel(
         factory = UserRegisterViewModelFactory(
@@ -37,9 +42,11 @@ fun RegisterScreen(
     )
     val state = userRegisterViewModel.uiState.value
     val userList: List<RegisterUser> by userRegisterViewModel.listUser.observeAsState(initial = listOf())
+    val keyboard = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(key1 = context) {
         userRegisterViewModel.validationEvent.collect { event ->
+            keyboard?.hide()
             when(event) {
                 is ValidationEvent.Success -> {
                     userRegisterViewModel.addUser(
@@ -65,57 +72,85 @@ fun RegisterScreen(
 
     Surface(
         modifier.fillMaxSize(),
-        color = MaterialTheme.colors.background
+        color = MaterialTheme.colors.background,
     ) {
-        Column {
-            Spacer(modifier = Modifier.height(60.dp))
-            Row(
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                // first name extField
-                InputFieldComponent(
-                    UIEvent.TypeField.FIRST, state.hasFirstNameError
-                ) { userRegisterViewModel.onEvent(UIEvent.FirstNameChanged(it))}
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                // last name extField
-                InputFieldComponent(
-                    UIEvent.TypeField.LAST, state.hasLastNameError
-                ) { userRegisterViewModel.onEvent(UIEvent.LastNameChanged(it))}
-            }
+        val configuration = LocalConfiguration.current
+        val weightInputField: Float
+        val weightDAO: Float
 
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                // email name extField
-                InputFieldComponent(
-                    UIEvent.TypeField.EMAIL, state.hasEmailError
-                ) { userRegisterViewModel.onEvent(UIEvent.EmailChanged(it))}
+        when(configuration.orientation){
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                weightInputField = 2f
+                weightDAO= 1f
             }
+            Configuration.ORIENTATION_PORTRAIT -> {
+                weightInputField = 1f
+                weightDAO= 2f
+            }
+            else -> {
+                // Orientation Square & undefined
+                weightInputField = 1f
+                weightDAO= 2f
+            }
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Button(
-                    onClick = {
-                        userRegisterViewModel.onEvent(UIEvent.Submit)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(80.dp, 20.dp)
-                ) {
-                    Text(text = stringResource(id = R.string.register))
+        Column (
+            modifier.fillMaxSize(),
+                ){
+            Box (modifier = Modifier
+                .weight(weightInputField)
+            ){
+                Column {
+                    Row(
+                        modifier = Modifier.weight(1.0f, true),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        // first name extField
+                        InputFieldComponent(
+                            UIEvent.TypeField.FIRST, state.hasFirstNameError
+                        ) { userRegisterViewModel.onEvent(UIEvent.FirstNameChanged(it)) }
+                    }
+                    Row(
+                        modifier = Modifier.weight(1.0f, true),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        // last name extField
+                        InputFieldComponent(
+                            UIEvent.TypeField.LAST, state.hasLastNameError
+                        ) { userRegisterViewModel.onEvent(UIEvent.LastNameChanged(it)) }
+                    }
+
+                    Row(
+                        modifier = Modifier.weight(1.0f, true),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        // email name extField
+                        InputFieldComponent(
+                            UIEvent.TypeField.EMAIL, state.hasEmailError
+                        ) { userRegisterViewModel.onEvent(UIEvent.EmailChanged(it)) }
+                    }
+
+                    Row(
+                        modifier = Modifier.weight(1.0f, true),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        Button(
+                            onClick = {
+                                userRegisterViewModel.onEvent(UIEvent.Submit)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(80.dp, 10.dp)
+                        ) {
+                            Text(text = stringResource(id = R.string.register))
+                        }
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(20.dp))
             LazyColumn(
                 Modifier
                     .fillMaxWidth()
+                    .weight(weightDAO)
                     .padding(10.dp)
             ) {
                 item {
@@ -123,7 +158,8 @@ fun RegisterScreen(
                 }
 
                 items(userList) { user ->
-                    ProductRow(id = user.idUser,
+                    ProductRow(
+                        id = user.idUser,
                         firstName = user.firstName,
                         lastName = user.lastName,
                         email = user.emailUser
@@ -176,6 +212,6 @@ fun ProductRow(id: Int, firstName: String, lastName: String, email: String) {
 @Composable
 private fun RegisterScreenPreview() {
     ChallengeTestTheme {
-        //RegisterScreen()
+        RegisterScreen()
     }
 }

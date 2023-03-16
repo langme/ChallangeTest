@@ -1,7 +1,6 @@
 package com.example.challengetest.data
 
 
-import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
@@ -12,7 +11,6 @@ import androidx.room.PrimaryKey
 class RegisterUser{
 
     @PrimaryKey(autoGenerate = true)
-    @NonNull
     @ColumnInfo(name = "id")
     var idUser: Int = 0
     @ColumnInfo(name = "first_name")

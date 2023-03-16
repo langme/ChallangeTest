@@ -26,8 +26,6 @@ class UserRegisterViewModel (
     val uiState: State<UIState> = _uiState
     val validationEvent = MutableSharedFlow<ValidationEvent>()
 
-    //val users:  LiveData<List<RegisterUser>> = userItemRepository.allUser
-    //private val _users = MutableLiveData<MutableList<RegisterUser>>()
     var listUser: LiveData<List<RegisterUser>> = userItemRepository.allUser.asLiveData()
 
 

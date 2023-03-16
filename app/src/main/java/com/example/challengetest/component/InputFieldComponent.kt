@@ -62,7 +62,7 @@ fun InputFieldComponent(
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(80.dp, 20.dp)
+            .padding(80.dp, 10.dp)
             .border(
                 2.dp,
                 color = MaterialTheme.colors.primaryVariant,
