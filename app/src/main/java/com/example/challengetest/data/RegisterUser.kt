@@ -4,10 +4,11 @@ package com.example.challengetest.data
 import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 
-@Entity(tableName = "user")
+@Entity(tableName = "user" , indices = [Index(value = ["emailUser", "id"], unique = true)])
 class RegisterUser{
 
     @PrimaryKey(autoGenerate = true)
