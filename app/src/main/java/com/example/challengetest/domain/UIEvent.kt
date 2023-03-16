@@ -8,4 +8,5 @@ sealed class UIEvent {
     data class LastNameChanged(val lastName: String): UIEvent()
     data class EmailChanged(val email: String): UIEvent()
     object Submit: UIEvent()
+    object AllUsers: UIEvent()
 }

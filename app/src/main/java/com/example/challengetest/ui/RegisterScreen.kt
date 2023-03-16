@@ -2,15 +2,20 @@ package com.example.challengetest.ui
 
 import android.app.Application
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.challengetest.ui.theme.ChallengeTestTheme
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.items
 import com.example.challengetest.R
 import com.example.challengetest.viewmodels.UserRegisterViewModel
 import com.example.challengetest.viewmodels.UserRegisterViewModelFactory
@@ -31,6 +36,7 @@ fun RegisterScreen(
         )
     )
     val state = userRegisterViewModel.uiState.value
+    val userList: List<RegisterUser> by userRegisterViewModel.listUser.observeAsState(initial = listOf())
 
     LaunchedEffect(key1 = context) {
         userRegisterViewModel.validationEvent.collect { event ->
@@ -42,6 +48,7 @@ fun RegisterScreen(
                             userRegisterViewModel.uiState.value.lastName,
                             userRegisterViewModel.uiState.value.email,
                         ))
+                    userRegisterViewModel.getUsers()
                     Toast
                         .makeText(context,"All inputs are valid", Toast.LENGTH_SHORT)
                         .show()
@@ -105,9 +112,63 @@ fun RegisterScreen(
                     Text(text = stringResource(id = R.string.register))
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
+            LazyColumn(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            ) {
+                item {
+                    TitleRow(head1 = "ID", head2 = "Name", head3 = "Last", head4 = "email")
+                }
+
+                items(userList) { user ->
+                    ProductRow(id = user.idUser,
+                        firstName = user.firstName,
+                        lastName = user.lastName,
+                        email = user.emailUser
+                    )
+                }
+            }
         }
     }
 
+}
+
+@Composable
+fun TitleRow(head1: String, head2: String, head3: String, head4: String) {
+    Row(
+        modifier = Modifier
+            .background(MaterialTheme.colors.primary)
+            .fillMaxWidth()
+            .padding(5.dp)
+    ) {
+        Text(head1, color = Color.White,
+            modifier = Modifier
+                .weight(0.1f))
+        Text(head2, color = Color.White,
+            modifier = Modifier
+                .weight(0.2f))
+        Text(head3, color = Color.White,
+            modifier = Modifier.weight(0.2f))
+        Text(head4, color = Color.White,
+            modifier = Modifier.weight(0.2f))
+    }
+}
+
+@Composable
+fun ProductRow(id: Int, firstName: String, lastName: String, email: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(5.dp)
+    ) {
+        Text(id.toString(), modifier = Modifier
+            .weight(0.1f))
+        Text(firstName, modifier = Modifier.weight(0.2f))
+        Text(lastName, modifier = Modifier.weight(0.2f))
+        Text(email, modifier = Modifier.weight(0.2f))
+    }
 }
 
 

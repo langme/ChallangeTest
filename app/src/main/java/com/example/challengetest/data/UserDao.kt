@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserDao {
     @Query("SELECT * FROM user ORDER BY id")
-    fun getUsers(): LiveData<List<RegisterUser>>
+    fun getUsers(): Flow<List<RegisterUser>>
 
     @Query("SELECT * FROM user WHERE id = :idUser")
     fun getUsers(idUser: String): LiveData<RegisterUser>

@@ -1,10 +1,8 @@
 package com.example.challengetest.viewmodels
 
 import android.app.Application
-import android.content.Context
 import androidx.compose.runtime.*
 import androidx.lifecycle.*
-import com.example.challengetest.R
 import com.example.challengetest.data.AppDatabase
 import com.example.challengetest.domain.UIEvent
 import com.example.challengetest.domain.UIState
@@ -14,7 +12,6 @@ import kotlinx.coroutines.launch
 import com.example.challengetest.repository.UserRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import com.example.challengetest.data.RegisterUser as RegisterUser
 
 
@@ -28,6 +25,11 @@ class UserRegisterViewModel (
     private var _uiState = mutableStateOf(UIState())
     val uiState: State<UIState> = _uiState
     val validationEvent = MutableSharedFlow<ValidationEvent>()
+
+    //val users:  LiveData<List<RegisterUser>> = userItemRepository.allUser
+    //private val _users = MutableLiveData<MutableList<RegisterUser>>()
+    var listUser: LiveData<List<RegisterUser>> = userItemRepository.allUser.asLiveData()
+
 
     init {
     }
@@ -52,6 +54,10 @@ class UserRegisterViewModel (
 
             is UIEvent.Submit -> {
                 validateInputs()
+            }
+
+            is UIEvent.AllUsers -> {
+                //TODO
             }
         }
     }
@@ -87,6 +93,11 @@ class UserRegisterViewModel (
         }
     }
 
+    fun getUsers() {
+        viewModelScope.launch(Dispatchers.IO) {
+            userItemRepository.getAllUsersRepo()
+        }
+    }
 }
 
 class UserRegisterViewModelFactory(
