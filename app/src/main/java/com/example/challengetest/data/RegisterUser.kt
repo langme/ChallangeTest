@@ -19,6 +19,8 @@ class RegisterUser{
     var lastName: String = ""
     @ColumnInfo(name = "emailUser")
     var emailUser: String =""
+    @ColumnInfo(name = "isvisible")
+    var isVisible: Boolean = true
 
 
     constructor() {}
@@ -28,5 +30,13 @@ class RegisterUser{
         this.lastName = lastName
         this.emailUser = emailUser
     }
+
+    constructor(id: Int, firstName: String, lastName: String, emailUser: String) {
+        this.idUser = id
+        this.firstName = firstName
+        this.lastName = lastName
+        this.emailUser = emailUser
+    }
+
 
 }

@@ -1,8 +1,15 @@
+@file:OptIn(ExperimentalMaterialApi::class)
+
 package com.example.challengetest.ui
 
 import android.app.Application
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,11 +32,12 @@ import com.example.challengetest.viewmodels.UserRegisterViewModel
 import com.example.challengetest.viewmodels.UserRegisterViewModelFactory
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.challengetest.component.InputFieldComponent
+import com.example.challengetest.component.UserRow
 import com.example.challengetest.data.RegisterUser
 import com.example.challengetest.domain.UIEvent
 import com.example.challengetest.domain.ValidationEvent
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun RegisterScreen(
 ) {
@@ -84,13 +92,13 @@ fun RegisterScreen(
                 weightDAO= 1f
             }
             Configuration.ORIENTATION_PORTRAIT -> {
-                weightInputField = 1f
+                weightInputField = 1.5f
                 weightDAO= 2f
             }
             else -> {
                 // Orientation Square & undefined
-                weightInputField = 1f
-                weightDAO= 2f
+                weightInputField = 1.5f
+                weightDAO= 1.5f
             }
         }
 
@@ -102,7 +110,7 @@ fun RegisterScreen(
             ){
                 Column {
                     Row(
-                        modifier = Modifier.weight(1.0f, true),
+                        //modifier = Modifier.weight(weightInputField, true),
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         // first name extField
@@ -111,7 +119,7 @@ fun RegisterScreen(
                         ) { userRegisterViewModel.onEvent(UIEvent.FirstNameChanged(it)) }
                     }
                     Row(
-                        modifier = Modifier.weight(1.0f, true),
+                        //modifier = Modifier.weight(weightInputField, true),
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         // last name extField
@@ -121,7 +129,7 @@ fun RegisterScreen(
                     }
 
                     Row(
-                        modifier = Modifier.weight(1.0f, true),
+                        //modifier = Modifier.weight(weightInputField, true),
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         // email name extField
@@ -131,7 +139,7 @@ fun RegisterScreen(
                     }
 
                     Row(
-                        modifier = Modifier.weight(1.0f, true),
+                        //modifier = Modifier.weight(weightInputField, true),
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Button(
@@ -156,14 +164,22 @@ fun RegisterScreen(
                 item {
                     TitleRow(head1 = "ID", head2 = "Name", head3 = "Last", head4 = "email")
                 }
-
-                items(userList) { user ->
-                    ProductRow(
-                        id = user.idUser,
-                        firstName = user.firstName,
-                        lastName = user.lastName,
-                        email = user.emailUser
-                    )
+                items(
+                    items = userList,
+                    key = { item: RegisterUser -> item.idUser }
+                ) { item ->
+                    AnimatedVisibility(
+                        visible = true, //TODO item.isVisible
+                        exit = fadeOut(
+                            animationSpec = TweenSpec(200, 200, FastOutLinearInEasing)
+                        )
+                    ) {
+                        UserRow(
+                            item
+                        ) {
+                            //userList = changeNoteVisibility(userList, it)
+                        }
+                    }
                 }
             }
         }
@@ -191,22 +207,6 @@ fun TitleRow(head1: String, head2: String, head3: String, head4: String) {
             modifier = Modifier.weight(0.2f))
     }
 }
-
-@Composable
-fun ProductRow(id: Int, firstName: String, lastName: String, email: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp)
-    ) {
-        Text(id.toString(), modifier = Modifier
-            .weight(0.1f))
-        Text(firstName, modifier = Modifier.weight(0.2f))
-        Text(lastName, modifier = Modifier.weight(0.2f))
-        Text(email, modifier = Modifier.weight(0.2f))
-    }
-}
-
 
 @Preview
 @Composable

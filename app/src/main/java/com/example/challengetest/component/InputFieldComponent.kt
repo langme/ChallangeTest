@@ -62,7 +62,7 @@ fun InputFieldComponent(
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(80.dp, 10.dp)
+            .padding(20.dp, 10.dp)
             .border(
                 2.dp,
                 color = MaterialTheme.colors.primaryVariant,
@@ -101,6 +101,11 @@ fun InputFieldComponent(
 fun PreviewInputFieldComponent() {
     ChallengeTestTheme {
         Surface {
+            var text = "test"
+            InputFieldComponent(
+                UIEvent.TypeField.FIRST,
+                false
+            ){text = it}
         }
     }
 }
